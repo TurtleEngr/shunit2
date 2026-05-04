@@ -17,6 +17,10 @@
 #   shellcheck disable=SC2003
 # Allow usage of legacy backticked `...` notation instead of $(...).
 #   shellcheck disable=SC2006
+#
+# Changes from "2.1.9pre" to this "2.1.10" version.
+#     Added Esc to turn off color changes, to limit the amount of color text.
+#     Added env. var. SHUNIT_TRAP. If set to 'n' to disable exit traps.
 
 # Return if shunit2 already loaded.
 if test -n "${SHUNIT_VERSION:-}"; then
@@ -44,9 +48,9 @@ if ${__SHUNIT_BUILTIN} [ "$(echo -e test)" = '-e test' ]; then
 fi
 
 # Determine if `date` supports nanosecond resolution.
-__SHUNIT_CMD_DATE_SECONDS='date +%s.%N'
-if ${__SHUNIT_BUILTIN} [ "$(date +%N)" = '%N' ]; then
-    __SHUNIT_CMD_DATE_SECONDS='date +%s'
+__SHUNIT_CMD_DATE_SECONDS="'date' +%s.%N"
+if ${__SHUNIT_BUILTIN} [ "$('date' +%N)" = '%N' ]; then
+    __SHUNIT_CMD_DATE_SECONDS="'date' +%s"
 fi
 
 # Determine `bc` command.
@@ -170,7 +174,11 @@ __SHUNIT_CMD_TPUT='tput'
 SHUNIT_CMD_TPUT=${SHUNIT_CMD_TPUT:-${__SHUNIT_CMD_TPUT}}
 
 # Enable color output. Options are 'auto', 'always', or 'never'.
-SHUNIT_COLOR=${SHUNIT_COLOR:-auto}
+export SHUNIT_COLOR=${SHUNIT_COLOR:-auto}
+
+# Enable exit trap?
+export SHUNIT_TRAP
+SHUNIT_TRAP=${SHUNIT_TRAP:-y}
 
 #
 # Internal constants.
@@ -1169,7 +1177,9 @@ _shunit_cleanup() {
 
     if ${__SHUNIT_BUILTIN} [ "${_shunit_name_}" != 'EXIT' ]; then
         # Handle all non-EXIT signals.
-        trap - 0 # Disable EXIT trap.
+        if [[ $SHUNIT_TRAP = "y" ]]; then
+            trap - 0 # Disable EXIT trap.
+        fi
         exit ${_shunit_signal_}
     elif ${__SHUNIT_BUILTIN} [ ${__shunit_reportGenerated} -eq ${SHUNIT_FALSE} ]; then
         _shunit_assertFail 'unknown failure encountered running a test'
@@ -1201,10 +1211,10 @@ _shunit_configureColor() {
     case ${_shunit_color_} in
         ${SHUNIT_TRUE})
             __shunit_ansi_none=${__SHUNIT_ANSI_NONE}
-            __shunit_ansi_red=${__SHUNIT_ANSI_RED}
-            __shunit_ansi_green=${__SHUNIT_ANSI_GREEN}
-            __shunit_ansi_yellow=${__SHUNIT_ANSI_YELLOW}
-            __shunit_ansi_cyan=${__SHUNIT_ANSI_CYAN}
+            __shunit_ansi_red="${__SHUNIT_ANSI_RED}\033[40m"
+            __shunit_ansi_green="${__SHUNIT_ANSI_GREEN}\033[40m"
+            __shunit_ansi_yellow="${__SHUNIT_ANSI_YELLOW}\033[40m"
+            __shunit_ansi_cyan="${__SHUNIT_ANSI_CYAN}\033[40m"
             ;;
         ${SHUNIT_FALSE})
             __shunit_ansi_none=''
@@ -1509,9 +1519,11 @@ if ! command mkdir "${SHUNIT_TMPDIR}"; then
 fi
 
 # Configure traps to clean up after ourselves.
-trap '_shunit_cleanup EXIT' 0
-trap '_shunit_cleanup INT' 2
-trap '_shunit_cleanup TERM' 15
+if [ $SHUNIT_TRAP = "y" ]; then
+    trap '_shunit_cleanup EXIT' 0
+    trap '_shunit_cleanup INT' 2
+    trap '_shunit_cleanup TERM' 15
+fi
 
 # Create phantom functions to work around issues with Cygwin.
 _shunit_mktempFunc
