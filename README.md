@@ -2,7 +2,7 @@
 shUnit2 is a [xUnit](http://en.wikipedia.org/wiki/XUnit) unit test framework for Bourne based shell scripts, and it is designed to work in a similar manner to
 [JUnit](http://www.junit.org), [PyUnit](http://pyunit.sourceforge.net), etc.. If you have ever had the desire to write a unit test for a shell script, shUnit2 can do the job.
 
-[![Travis CI](https://api.travis-ci.com/kward/shunit2.svg)](https://app.travis-ci.com/github/kward/shunit2)
+/* [![Travis CI](https://api.travis-ci.com/kward/shunit2.svg)](https://app.travis-ci.com/github/kward/shunit2) */
 
 # Information
 If you want to jump straight in, scroll down to the [Quickstart](#Quickstart) section.
