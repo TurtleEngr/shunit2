@@ -48,9 +48,9 @@ if ${__SHUNIT_BUILTIN} [ "$(echo -e test)" = '-e test' ]; then
 fi
 
 # Determine if `date` supports nanosecond resolution.
-__SHUNIT_CMD_DATE_SECONDS="'date' +%s.%N"
-if ${__SHUNIT_BUILTIN} [ "$('date' +%N)" = '%N' ]; then
-    __SHUNIT_CMD_DATE_SECONDS="'date' +%s"
+__SHUNIT_CMD_DATE_SECONDS="date +%s.%N"
+if ${__SHUNIT_BUILTIN} [ "$(date +%N)" = '%N' ]; then
+    __SHUNIT_CMD_DATE_SECONDS="date +%s"
 fi
 
 # Determine `bc` command.
